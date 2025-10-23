@@ -19,7 +19,7 @@ jobs:
     - name: Debug secrets
       run: |
         if [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
-          echo "Account ID length: ${CLOUDFLARE_ACCOUNT_ID}"
+          echo "Account ID length: ${#CLOUDFLARE_ACCOUNT_ID}"
         else
           echo "CLOUDFLARE_ACCOUNT_ID is not set or empty"
         fi
