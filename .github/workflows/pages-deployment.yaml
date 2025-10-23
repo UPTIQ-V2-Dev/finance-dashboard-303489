@@ -17,7 +17,20 @@ jobs:
 
     steps:
     - name: Debug secrets
-      run: echo "Account ID length:${{ secrets.CLOUDFLARE_ACCOUNT_ID }} ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      run: |
+        if [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
+          echo "Account ID length: ${CLOUDFLARE_ACCOUNT_ID}"
+        else
+          echo "CLOUDFLARE_ACCOUNT_ID is not set or empty"
+        fi
+        if [ -n "$CLOUDFLARE_API_TOKEN" ]; then
+          echo "API Token length: ${#CLOUDFLARE_API_TOKEN}"
+        else
+          echo "CLOUDFLARE_API_TOKEN is not set or empty"
+        fi
+      env:
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       # - name: Checkout repository
       #   uses: actions/checkout@v4
       #   with:
