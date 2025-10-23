@@ -70,41 +70,30 @@ jobs:
         working-directory: frontend
         run: pnpm run build
 
+      - name: Install Wrangler
+        run: npm install -g wrangler
+
       - name: Create Cloudflare Pages project if not exists
         run: |
-          # Check if project exists
           PROJECT_NAME="${{ github.event.repository.name }}"
-          ACCOUNT_ID="${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
-          API_TOKEN="${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          echo "Checking if project ${PROJECT_NAME} exists..."
           
-          # List existing projects
-          EXISTING_PROJECTS=$(curl -s -X GET \
-            "https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/pages/projects" \
-            -H "Authorization: Bearer ${API_TOKEN}" \
-            -H "Content-Type: application/json")
-          
-          # Check if project exists
-          if echo "$EXISTING_PROJECTS" | grep -q "\"name\":\"${PROJECT_NAME}\""; then
+          # Check if project exists using wrangler
+          if wrangler pages project list | grep -q "${PROJECT_NAME}"; then
             echo "Project ${PROJECT_NAME} already exists"
           else
             echo "Creating new project: ${PROJECT_NAME}"
-            curl -s -X POST \
-              "https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/pages/projects" \
-              -H "Authorization: Bearer ${API_TOKEN}" \
-              -H "Content-Type: application/json" \
-              -d "{\"name\":\"${PROJECT_NAME}\",\"production_branch\":\"publish\"}"
+            wrangler pages project create "${PROJECT_NAME}" --production-branch publish
             echo "Project created successfully"
           fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        id: pages
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: ${{ github.event.repository.name }}
-          directory: frontend/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          # Set production branch for publish, otherwise it's a preview
-          branch: publish
+          command: pages deploy frontend/dist --project-name="${{ github.event.repository.name }}" --compatibility-date=$(date +%Y-%m-%d)
 
