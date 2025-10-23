@@ -106,5 +106,5 @@ jobs:
           directory: frontend/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           # Set production branch for publish, otherwise it's a preview
-          productionBranch: publish
+          branch: publish
 
