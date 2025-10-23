@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "*"
+    branches:
+      - "main"
 
 jobs:
   deploy:
@@ -67,17 +69,16 @@ jobs:
       - name: Build project
         working-directory: frontend
         run: pnpm run build
+      
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        id: pages
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: ${{ github.event.repository.name }}
           directory: frontend/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          # Set production branch for publish, otherwise it's a preview
-          productionBranch: publish
+          command: pages deploy frontend/dist --project-name=${{ github.event.repository.name }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}          # Set production branch for publish, otherwise it's a preview
 
       # - name: Add deployment URL to PR comment
       #   if: github.event_name == 'pull_request'
